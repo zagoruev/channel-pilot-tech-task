@@ -52,7 +52,7 @@ const photos = ref<
           Albums
         </h2>
         <div
-          class="bg-white shadow rounded p-3 mt-3 border border-white"
+          class="bg-white shadow rounded p-3 mt-3 border border-white relative select-none"
           v-for="album in albums"
           :key="album.id"
         >
@@ -61,12 +61,12 @@ const photos = ref<
           </p>
         </div>
       </div>
-      <div class="bg-gray-50 p-4 rounded mr-4 column">
+      <div class="bg-gray-50 py-4 px-6 rounded mr-4 column">
         <h2 class="text-gray-700 font-semibold tracking-wide text-sm">
           Photos
         </h2>
         <div
-          class="bg-white shadow rounded mt-3 border relative"
+          class="bg-white shadow rounded mt-3 border relative select-none"
           v-for="photo in photos"
           :key="photo.id"
         >
