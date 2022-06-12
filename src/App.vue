@@ -46,8 +46,11 @@ const photos = ref<
 
 <template>
   <div class="flex justify-center">
-    <div class="min-h-screen flex py-6 relative">
-      <div class="bg-gray-50 p-4 rounded mr-4 column">
+    <div class="min-h-screen flex py-6 relative" ref="container">
+      <v-stage class="absolute inset-0">
+        <v-layer></v-layer>
+      </v-stage>
+      <div class="bg-gray-50 py-4 px-6 rounded mr-4 column">
         <h2 class="text-gray-700 font-semibold tracking-wide text-sm">
           Albums
         </h2>
