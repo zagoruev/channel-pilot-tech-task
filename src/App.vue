@@ -53,11 +53,13 @@ const startConnecting = (e: MouseEvent | TouchEvent) => {
       bezierStart,
       getRelativeCenterPosition(e.currentTarget as HTMLElement, container.value)
     );
+    document.addEventListener("mouseup", endConnecting);
   }
 };
 
 const endConnecting = (e: MouseEvent) => {
   Object.assign(bezierStart, { x: null, y: null });
+  document.removeEventListener("mouseup", endConnecting);
 };
 
 const container = ref(null);
