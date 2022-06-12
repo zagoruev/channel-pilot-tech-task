@@ -3,6 +3,7 @@ import { computed, reactive, ref } from "vue";
 import { useSize } from "@/composables/useSize";
 import { useRelativeMousePosition } from "@/composables/useRelativeMousePostion";
 import { getRelativeCenterPosition } from "@/utils/getRelativeCenterPosition";
+import { getBezierPathData } from "@/utils/getBezierPathData";
 
 const albums = ref<
   {
@@ -76,6 +77,12 @@ const canvasConfig = computed(() => {
     ...containerSize,
   };
 });
+
+const connectorData = computed(() => {
+  if (isConnecting.value) {
+    return getBezierPathData(bezierStart, mousePosition);
+  }
+  return false;
 });
 </script>
 
@@ -84,6 +91,12 @@ const canvasConfig = computed(() => {
     <div class="min-h-screen flex py-6 relative" ref="container">
       <v-stage :config="canvasConfig" class="absolute inset-0">
         <v-layer>
+          <v-path
+            v-if="connectorData"
+            :data="connectorData"
+            :strokeWidth="2"
+            stroke="rgb(6 182 212)"
+          />
         </v-layer>
       </v-stage>
       <div class="bg-gray-50 py-4 px-6 rounded mr-4 column">
