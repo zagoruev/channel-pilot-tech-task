@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from "vue";
 import { useSize } from "@/composables/useSize";
+import { useRelativeMousePosition } from "@/composables/useRelativeMousePostion";
+import { getRelativeCenterPosition } from "@/utils/getRelativeCenterPosition";
 
 const albums = ref<
   {
@@ -44,9 +46,35 @@ const photos = ref<
   },
 ]);
 
+const startConnecting = (e: MouseEvent | TouchEvent) => {
+  if (container.value) {
+    Object.assign(
+      bezierStart,
+      getRelativeCenterPosition(e.currentTarget as HTMLElement, container.value)
+    );
+  }
+};
+
+const endConnecting = (e: MouseEvent) => {
+  Object.assign(bezierStart, { x: null, y: null });
+};
+
+const container = ref(null);
+const containerSize = useSize(container);
+const mousePosition = useRelativeMousePosition(container);
+const bezierStart = reactive<{
+  x: number | null;
+  y: number | null;
+}>({ x: null, y: null });
+
+const isConnecting = computed(
+  () => bezierStart.x !== null && bezierStart.y !== null
+);
 
 const canvasConfig = computed(() => {
-  return size;
+  return {
+    ...containerSize,
+  };
 });
 });
 </script>
@@ -72,6 +100,7 @@ const canvasConfig = computed(() => {
           </p>
           <div
             class="connectror w-4 h-4 rounded-full bg-cyan-500 cursor-pointer absolute right-0 bottom-1/2 translate-x-1/2 translate-y-1/2 border border-white hover:scale-150 transition-all duration-200"
+            @mouseup="endConnecting"
           ></div>
         </div>
       </div>
@@ -96,6 +125,7 @@ const canvasConfig = computed(() => {
           </h3>
           <div
             class="connectror w-4 h-4 rounded-full border absolute bg-cyan-500 cursor-pointer right-full bottom-1/2 translate-x-1/2 translate-y-1/2 border-white hover:scale-150 transition-all duration-200"
+            @mousedown="startConnecting"
           ></div>
         </div>
       </div>
