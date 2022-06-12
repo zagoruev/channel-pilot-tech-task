@@ -69,6 +69,9 @@ const canvasConfig = computed(() => {
           <p class="text-gray-700 font-semibold tracking-wide text-sm m-0">
             {{ album.title }}
           </p>
+          <div
+            class="connectror w-4 h-4 rounded-full bg-cyan-500 cursor-pointer absolute right-0 bottom-1/2 translate-x-1/2 translate-y-1/2 border border-white hover:scale-150 transition-all duration-200"
+          ></div>
         </div>
       </div>
       <div class="bg-gray-50 py-4 px-6 rounded mr-4 column">
@@ -90,6 +93,9 @@ const canvasConfig = computed(() => {
           >
             {{ photo.description }}
           </h3>
+          <div
+            class="connectror w-4 h-4 rounded-full border absolute bg-cyan-500 cursor-pointer right-full bottom-1/2 translate-x-1/2 translate-y-1/2 border-white hover:scale-150 transition-all duration-200"
+          ></div>
         </div>
       </div>
     </div>
