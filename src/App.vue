@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, reactive, ref } from "vue";
+import { useSize } from "@/composables/useSize";
 
 const albums = ref<
   {
@@ -42,12 +43,18 @@ const photos = ref<
     description: "Mountain Tops Under Blue Sky",
   },
 ]);
+
+
+const canvasConfig = computed(() => {
+  return size;
+});
+});
 </script>
 
 <template>
   <div class="flex justify-center">
     <div class="min-h-screen flex py-6 relative" ref="container">
-      <v-stage class="absolute inset-0">
+      <v-stage :config="canvasConfig" class="absolute inset-0">
         <v-layer></v-layer>
       </v-stage>
       <div class="bg-gray-50 py-4 px-6 rounded mr-4 column">
