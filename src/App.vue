@@ -1,61 +1,13 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue";
 import { useSize } from "@/composables/useSize";
 import { useRelativeMousePosition } from "@/composables/useRelativeMousePostion";
+import { ref, reactive, onMounted } from "vue";
+import { storeToRefs } from "pinia";
+import { usePhotoStore } from "@/store/photo";
+import { useAlbumStore } from "@/store/album";
 import { getRelativeCenterPosition } from "@/utils/getRelativeCenterPosition";
 import { getBezierPathData } from "@/utils/getBezierPathData";
 
-const albums = ref<
-  {
-    id: number;
-    title: string;
-  }[]
->([
-  {
-    id: 1,
-    title: "Lanscapes",
-  },
-  {
-    id: 2,
-    title: "Food",
-  },
-]);
-
-const photos = ref<
-  {
-    id: number;
-    url: string;
-    description: string;
-    albumId?: number;
-  }[]
->([
-  {
-    id: 1,
-    url: "//images.pexels.com/photos/12252216/pexels-photo-12252216.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200",
-    description:
-      "Free stock photo of dawn, nature background, nature photography",
-  },
-  {
-    id: 2,
-    url: "//images.pexels.com/photos/12310319/pexels-photo-12310319.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200",
-    description: "Free stock photo of berries, bowl of fruits, summer",
-  },
-  {
-    id: 3,
-    url: "//images.pexels.com/photos/12315780/pexels-photo-12315780.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200",
-    description: "Mountain Tops Under Blue Sky",
-  },
-]);
-
-const startConnecting = (e: MouseEvent | TouchEvent) => {
-  if (container.value) {
-    Object.assign(
-      bezierStart,
-      getRelativeCenterPosition(e.currentTarget as HTMLElement, container.value)
-    );
-    document.addEventListener("mouseup", endConnecting);
-  }
-};
 
 const endConnecting = (e: MouseEvent) => {
   Object.assign(bezierStart, { x: null, y: null });
@@ -64,6 +16,16 @@ const endConnecting = (e: MouseEvent) => {
 
 const container = ref(null);
 const containerSize = useSize(container);
+const { photos } = storeToRefs(usePhotoStore());
+const { fetchPhotos, assignAlbumToPhoto } = usePhotoStore();
+
+const { albums } = storeToRefs(useAlbumStore());
+const { fetchAlbums } = useAlbumStore();
+
+onMounted(() => {
+  fetchPhotos();
+  fetchAlbums();
+});
 const mousePosition = useRelativeMousePosition(container);
 const bezierStart = reactive<{
   x: number | null;
