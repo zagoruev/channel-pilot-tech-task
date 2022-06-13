@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed, type Ref } from "vue";
+import { ref, reactive, onMounted, computed } from "vue";
 import { storeToRefs } from "pinia";
 
 import type { Coords } from "@/types/coords";
@@ -91,13 +91,13 @@ const existingConnections = computed(() => {
       const photoDot = photoElements.value.find(
         (el: ConnectorDotComponent) => el.id === photo.id
       );
-      const AlbumDot = albumElements.value.find(
+      const albumDot = albumElements.value.find(
         (el: ConnectorDotComponent) => el.id === photo.albumId
       );
-      if (photoDot && AlbumDot && container.value) {
+      if (photoDot && albumDot && container.value) {
         connections.push([
-          getRelativeCenterPosition(photoDot.el, container.value),
-          getRelativeCenterPosition(AlbumDot.el, container.value),
+          getRelativeCenterPosition(photoDot["el"], container.value),
+          getRelativeCenterPosition(albumDot["el"], container.value),
         ]);
       }
     }
