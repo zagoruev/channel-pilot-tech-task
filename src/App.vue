@@ -1,21 +1,25 @@
 <script setup lang="ts">
-import { useSize } from "@/composables/useSize";
-import { useRelativeMousePosition } from "@/composables/useRelativeMousePostion";
 import { ref, reactive, onMounted } from "vue";
 import { storeToRefs } from "pinia";
+
+import type { Coords } from "./types/coords";
+
 import { usePhotoStore } from "@/store/photo";
 import { useAlbumStore } from "@/store/album";
+
 import { getRelativeCenterPosition } from "@/utils/getRelativeCenterPosition";
-import { getBezierPathData } from "@/utils/getBezierPathData";
+import { useRelativeMousePosition } from "@/composables/useRelativeMousePostion";
 
-
-const endConnecting = (e: MouseEvent) => {
-  Object.assign(bezierStart, { x: null, y: null });
-  document.removeEventListener("mouseup", endConnecting);
-};
+import AppColumn from "@/components/AppColumn.vue";
+import AlbumThumb from "@/components/AlbumThumb.vue";
+import PhotoThumb from "@/components/PhotoThumb.vue";
+import ConnectorDot from "@/components/ConnectorDot.vue";
+import ConnectorsCanvas from "@/components/ConnectorsCanvas.vue";
+import type { Photo } from "./types/photo";
+import type { Album } from "./types/album";
 
 const container = ref(null);
-const containerSize = useSize(container);
+
 const { photos } = storeToRefs(usePhotoStore());
 const { fetchPhotos, assignAlbumToPhoto } = usePhotoStore();
 
@@ -26,94 +30,86 @@ onMounted(() => {
   fetchPhotos();
   fetchAlbums();
 });
+
+const startPosition = ref<Coords | null>(null);
 const mousePosition = useRelativeMousePosition(container);
-const bezierStart = reactive<{
-  x: number | null;
-  y: number | null;
-}>({ x: null, y: null });
 
-const isConnecting = computed(
-  () => bezierStart.x !== null && bezierStart.y !== null
-);
-
-const canvasConfig = computed(() => {
-  return {
-    ...containerSize,
-  };
+const connection = reactive<{
+  photo: Photo | null;
+  album: Album | null;
+}>({
+  photo: null,
+  album: null,
 });
 
-const connectorData = computed(() => {
-  if (isConnecting.value) {
-    return getBezierPathData(bezierStart, mousePosition);
+const startConnection = (object: Album | Photo, e: MouseEvent) => {
+  if (container.value) {
+    startPosition.value = getRelativeCenterPosition(
+      e.currentTarget as HTMLElement,
+      container.value
+    );
+    if ((object as Photo).url) {
+      Object.assign(connection, {
+        photo: object,
+      });
+    } else {
+      Object.assign(connection, {
+        album: object,
+      });
+    }
+
+    document.addEventListener("mouseup", dropConnection);
   }
-  return false;
-});
+};
+
+const endConnection = (object: Album | Photo) => {
+  if ((object as Photo).url) {
+    Object.assign(connection, {
+      photo: object,
+    });
+  } else {
+    Object.assign(connection, {
+      album: object,
+    });
+  }
+  if (connection.photo && connection.album) {
+    assignAlbumToPhoto(connection.photo, connection.album);
+  }
+  dropConnection();
+};
+
+const dropConnection = () => {
+  startPosition.value = null;
+  document.removeEventListener("mouseup", dropConnection);
+};
 </script>
 
 <template>
-  <div class="flex justify-center">
+  <div class="flex justify-center font-sans text-gray-700 antialiased">
     <div class="min-h-screen flex py-6 relative" ref="container">
-      <v-stage :config="canvasConfig" class="absolute inset-0">
-        <v-layer>
-          <v-path
-            v-if="connectorData"
-            :data="connectorData"
-            :strokeWidth="2"
-            stroke="rgb(6 182 212)"
+      <connectors-canvas :start="startPosition" :mouse="mousePosition" />
+      <app-column title="Albums">
+        <album-thumb v-for="album in albums" :key="album.id" :album="album">
+          <connector-dot
+            position="right"
+            @mouseup="endConnection(album)"
+            @mousedown="startConnection(album, $event)"
           />
-        </v-layer>
-      </v-stage>
-      <div class="bg-gray-50 py-4 px-6 rounded mr-4 column">
-        <h2 class="text-gray-700 font-semibold tracking-wide text-sm">
-          Albums
-        </h2>
-        <div
-          class="bg-white shadow rounded p-3 mt-3 border border-white relative select-none"
-          v-for="album in albums"
-          :key="album.id"
-        >
-          <p class="text-gray-700 font-semibold tracking-wide text-sm m-0">
-            {{ album.title }}
-          </p>
-          <div
-            class="connectror w-4 h-4 rounded-full bg-cyan-500 cursor-pointer absolute right-0 bottom-1/2 translate-x-1/2 translate-y-1/2 border border-white hover:scale-150 transition-all duration-200"
-            @mouseup="endConnecting"
-          ></div>
-        </div>
-      </div>
-      <div class="bg-gray-50 py-4 px-6 rounded mr-4 column">
-        <h2 class="text-gray-700 font-semibold tracking-wide text-sm">
-          Photos
-        </h2>
-        <div
-          class="bg-white shadow rounded mt-3 border relative select-none"
-          v-for="photo in photos"
-          :key="photo.id"
-        >
-          <img
-            class="block rounded w-full h-32 object-cover object-center"
-            :src="photo.url"
-            :alt="photo.description"
+        </album-thumb>
+      </app-column>
+      <app-column title="Photos">
+        <photo-thumb v-for="photo in photos" :key="photo.id" :photo="photo">
+          <connector-dot
+            @mouseup="endConnection(photo)"
+            @mousedown="startConnection(photo, $event)"
           />
-          <h3
-            class="absolute inset-x-0 bottom-0 text-white px-2 pb-1 pt-4 bg-gradient-to-t from-black to-transparent rounded-b text-sm text-ellipsis overflow-hidden whitespace-nowrap"
-          >
-            {{ photo.description }}
-          </h3>
-          <div
-            class="connectror w-4 h-4 rounded-full border absolute bg-cyan-500 cursor-pointer right-full bottom-1/2 translate-x-1/2 translate-y-1/2 border-white hover:scale-150 transition-all duration-200"
-            @mousedown="startConnecting"
-          ></div>
-        </div>
-      </div>
+        </photo-thumb>
+      </app-column>
     </div>
   </div>
 </template>
 
 <style scoped>
-body {
-  @apply font-sans text-gray-700 antialiased;
-}
 .column {
   min-width: 20rem;
   width: 20rem;

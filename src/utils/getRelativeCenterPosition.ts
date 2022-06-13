@@ -1,12 +1,9 @@
-export interface TargetPosition {
-  x: undefined | number;
-  y: undefined | number;
-}
+import type { Coords } from "@/types/coords";
 
 export function getRelativeCenterPosition(
   target: HTMLElement,
   parent: HTMLElement
-): TargetPosition {
+): Coords {
   const targetRect = target.getBoundingClientRect();
   const parentRect = parent.getBoundingClientRect();
 

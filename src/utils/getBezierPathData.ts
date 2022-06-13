@@ -1,11 +1,8 @@
 export const bezierWeight = 1;
 
-export interface BezierPoint {
-  x: number;
-  y: number;
-}
+import type { Coords } from "@/types/coords";
 
-export function getBezierPathData(from: BezierPoint, to: BezierPoint): string {
+export function getBezierPathData(from: Coords, to: Coords): string {
   const dx = Math.abs(from.x - to.x) * bezierWeight;
 
   const c1 = {

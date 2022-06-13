@@ -1,20 +1,18 @@
 import { reactive, onMounted, onUnmounted, type Ref, unref } from "vue";
+import type { Coords } from "@/types/coords";
 
-export interface TargetMousePosition {
-  x: undefined | number;
-  y: undefined | number;
-}
-
-export function useRelativeMousePosition(target: Ref): TargetMousePosition {
-  const position = reactive<TargetMousePosition>({
-    x: undefined,
-    y: undefined,
+export function useRelativeMousePosition(target: Ref): Coords {
+  const position = reactive<Coords>({
+    x: 0,
+    y: 0,
   });
 
   function update(e: MouseEvent, target: HTMLElement) {
+    const targetRect = target.getBoundingClientRect();
+
     Object.assign(position, {
-      x: e.pageX - target.offsetLeft,
-      y: e.pageY - target.offsetTop,
+      x: e.clientX - targetRect.left,
+      y: e.clientY - targetRect.top,
     });
   }
 
@@ -24,14 +22,14 @@ export function useRelativeMousePosition(target: Ref): TargetMousePosition {
       return;
     }
 
-    const targetEvent = (e: MouseEvent) => {
+    const targetEventHandler = (e: MouseEvent) => {
       return update(e, targetElement);
     };
 
-    targetElement.addEventListener("mousemove", targetEvent);
+    targetElement.addEventListener("mousemove", targetEventHandler);
 
     onUnmounted(() =>
-      targetElement.removeEventListener("mousemove", targetEvent)
+      targetElement.removeEventListener("mousemove", targetEventHandler)
     );
   });
 
