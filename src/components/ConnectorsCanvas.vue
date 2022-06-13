@@ -3,10 +3,19 @@
     <v-stage :config="canvasConfig">
       <v-layer>
         <v-path
-          v-if="connectorData"
+          v-if="currentConnectorData"
+          :data="currentConnectorData"
+          :strokeWidth="2"
+          stroke="rgb(6 182 212)"
+        />
+      </v-layer>
+      <v-layer>
+        <v-path
+          v-for="connectorData in connectorsData"
           :data="connectorData"
           :strokeWidth="2"
           stroke="rgb(6 182 212)"
+          :key="connectorData"
         />
       </v-layer>
     </v-stage>
@@ -22,6 +31,7 @@ import { useSize } from "@/composables/useSize";
 const props = defineProps<{
   start: Coords | null;
   mouse: Coords;
+  connections: [Coords, Coords][];
 }>();
 
 const ruler = ref(null);
@@ -31,7 +41,13 @@ const canvasConfig = computed(() => {
   return containerSize;
 });
 
-const connectorData = computed(() => {
+const connectorsData = computed(() => {
+  return props.connections.map((connection) =>
+    getBezierPathData(connection[0], connection[1])
+  );
+});
+
+const currentConnectorData = computed(() => {
   if (props.start) {
     return getBezierPathData(props.start, props.mouse);
   }

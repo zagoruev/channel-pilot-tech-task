@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, computed, type Ref } from "vue";
 import { storeToRefs } from "pinia";
 
-import type { Coords } from "./types/coords";
+import type { Coords } from "@/types/coords";
+import type { Photo } from "@/types/photo";
+import type { Album } from "@/types/album";
+import type { ConnectorDotComponent } from "@/types/connector-dot-component";
 
 import { usePhotoStore } from "@/store/photo";
 import { useAlbumStore } from "@/store/album";
@@ -15,8 +18,6 @@ import AlbumThumb from "@/components/AlbumThumb.vue";
 import PhotoThumb from "@/components/PhotoThumb.vue";
 import ConnectorDot from "@/components/ConnectorDot.vue";
 import ConnectorsCanvas from "@/components/ConnectorsCanvas.vue";
-import type { Photo } from "./types/photo";
-import type { Album } from "./types/album";
 
 const container = ref(null);
 
@@ -34,7 +35,7 @@ onMounted(() => {
 const startPosition = ref<Coords | null>(null);
 const mousePosition = useRelativeMousePosition(container);
 
-const connection = reactive<{
+const currentConnection = reactive<{
   photo: Photo | null;
   album: Album | null;
 }>({
@@ -49,11 +50,11 @@ const startConnection = (object: Album | Photo, e: MouseEvent) => {
       container.value
     );
     if ((object as Photo).url) {
-      Object.assign(connection, {
+      Object.assign(currentConnection, {
         photo: object,
       });
     } else {
-      Object.assign(connection, {
+      Object.assign(currentConnection, {
         album: object,
       });
     }
@@ -64,16 +65,16 @@ const startConnection = (object: Album | Photo, e: MouseEvent) => {
 
 const endConnection = (object: Album | Photo) => {
   if ((object as Photo).url) {
-    Object.assign(connection, {
+    Object.assign(currentConnection, {
       photo: object,
     });
   } else {
-    Object.assign(connection, {
+    Object.assign(currentConnection, {
       album: object,
     });
   }
-  if (connection.photo && connection.album) {
-    assignAlbumToPhoto(connection.photo, connection.album);
+  if (currentConnection.photo && currentConnection.album) {
+    assignAlbumToPhoto(currentConnection.photo, currentConnection.album);
   }
   dropConnection();
 };
@@ -82,18 +83,49 @@ const dropConnection = () => {
   startPosition.value = null;
   document.removeEventListener("mouseup", dropConnection);
 };
+
+const existingConnections = computed(() => {
+  const connections: [Coords, Coords][] = [];
+  photos.value.forEach((photo) => {
+    if (photo.albumId) {
+      const photoDot = photoElements.value.find(
+        (el: ConnectorDotComponent) => el.id === photo.id
+      );
+      const AlbumDot = albumElements.value.find(
+        (el: ConnectorDotComponent) => el.id === photo.albumId
+      );
+      if (photoDot && AlbumDot && container.value) {
+        connections.push([
+          getRelativeCenterPosition(photoDot.el, container.value),
+          getRelativeCenterPosition(AlbumDot.el, container.value),
+        ]);
+      }
+    }
+  });
+
+  return connections;
+});
+
+const albumElements = ref([]);
+const photoElements = ref([]);
 </script>
 
 <template>
   <div class="flex justify-center font-sans text-gray-700 antialiased">
     <div class="min-h-screen flex py-6 relative" ref="container">
-      <connectors-canvas :start="startPosition" :mouse="mousePosition" />
+      <connectors-canvas
+        :start="startPosition"
+        :mouse="mousePosition"
+        :connections="existingConnections"
+      />
       <app-column title="Albums">
         <album-thumb v-for="album in albums" :key="album.id" :album="album">
           <connector-dot
             position="right"
             @mouseup="endConnection(album)"
             @mousedown="startConnection(album, $event)"
+            :id="album.id"
+            ref="albumElements"
           />
         </album-thumb>
       </app-column>
@@ -102,6 +134,8 @@ const dropConnection = () => {
           <connector-dot
             @mouseup="endConnection(photo)"
             @mousedown="startConnection(photo, $event)"
+            :id="photo.id"
+            ref="photoElements"
           />
         </photo-thumb>
       </app-column>

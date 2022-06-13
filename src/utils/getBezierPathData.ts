@@ -1,4 +1,4 @@
-export const bezierWeight = 1;
+export const bezierWeight = 0.675;
 
 import type { Coords } from "@/types/coords";
 
