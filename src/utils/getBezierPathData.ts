@@ -4,14 +4,15 @@ import type { Coords } from "@/types/coords";
 
 export function getBezierPathData(from: Coords, to: Coords): string {
   const dx = Math.abs(from.x - to.x) * bezierWeight;
+  const ltr = from.x < to.x;
 
   const c1 = {
-    x: from.x - dx,
+    x: from.x - (ltr ? -dx : dx),
     y: from.y,
   };
 
   const c2 = {
-    x: to.x + dx,
+    x: to.x + (ltr ? -dx : dx),
     y: to.y,
   };
 
