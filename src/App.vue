@@ -111,7 +111,9 @@ const photoElements = ref([]);
 </script>
 
 <template>
-  <div class="flex justify-center font-sans text-gray-700 antialiased">
+  <div
+    class="flex justify-center font-sans text-gray-700 antialiased select-none"
+  >
     <div class="min-h-screen flex py-6 relative" ref="container">
       <connectors-canvas
         :start="startPosition"
